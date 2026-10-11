@@ -17,10 +17,10 @@ const GRANULARITIES: { id: Granularity; label: string }[] = [
 ]
 
 // Chart colours: actual uses the app's violet, the rolling average a contrasting orange,
-// and the plan a neutral ink so it reads as a reference line rather than a data series.
+// and the plan a light neutral gray so it reads as a backdrop for the actual bar.
 const COLOR_ACTUAL = '#6250d6'
 const COLOR_ROLLING = '#eb6834'
-const COLOR_PLAN = '#334155'
+const COLOR_PLAN = '#cbd5e1'
 
 const HEIGHT = 260
 const MARGIN = { top: 16, right: 40, bottom: 28, left: 36 }
@@ -89,20 +89,13 @@ export function TrendView() {
   const leftMax = niceMax(Math.max(0, ...points.map((p) => Math.max(p.actual, p.plan))))
   const rightMax = niceMax(Math.max(0, ...points.map((p) => p.rolling ?? 0)))
   const band = points.length > 0 ? innerW / points.length : 0
-  const barW = Math.max(1, Math.min(28, band * 0.7 - 2))
+  // Plan and actual sit side by side in each period, with a 2px gap between them
+  const barGap = band >= 8 ? 2 : 0
+  const barW = Math.max(0.5, Math.min(14, (band * 0.8 - barGap) / 2))
   const yLeft = (v: number) => MARGIN.top + innerH - (v / leftMax) * innerH
   const yRight = (v: number) => MARGIN.top + innerH - (v / rightMax) * innerH
   const xCenter = (i: number) => MARGIN.left + band * (i + 0.5)
   const ticks = [0, 1, 2, 3, 4]
-
-  // Plan as a step line: a flat segment across each period's band
-  const planPath = points
-    .map((p, i) => {
-      const x0 = MARGIN.left + band * i
-      const y = yLeft(p.plan).toFixed(1)
-      return `${i === 0 ? `M${x0},${y}` : `V${y}`}H${(x0 + band).toFixed(1)}`
-    })
-    .join('')
 
   // Rolling average line, broken wherever there's no data yet
   let rollingPath = ''
@@ -179,12 +172,12 @@ export function TrendView() {
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
           <span className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-2.5 rounded-sm" style={{ background: COLOR_ACTUAL }} />
-            Actual
+            <span className="inline-block h-3 w-2.5 rounded-sm" style={{ background: COLOR_PLAN }} />
+            Plan
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="inline-block h-0.5 w-4" style={{ background: COLOR_PLAN }} />
-            Plan
+            <span className="inline-block h-3 w-2.5 rounded-sm" style={{ background: COLOR_ACTUAL }} />
+            Actual
           </span>
           <span className="flex items-center gap-1.5">
             <span className="inline-block h-0.5 w-4 rounded" style={{ background: COLOR_ROLLING }} />
@@ -270,21 +263,25 @@ export function TrendView() {
                   />
                 )}
 
-                {/* Actual bars */}
+                {/* Plan (left) and actual (right) bars */}
                 {points.map((p, i) => {
-                  const y = yLeft(p.actual)
+                  const baseline = MARGIN.top + innerH
+                  const yPlan = yLeft(p.plan)
+                  const yActual = yLeft(p.actual)
                   return (
-                    <path
-                      key={p.key}
-                      d={barPath(xCenter(i) - barW / 2, y, barW, MARGIN.top + innerH - y)}
-                      fill={COLOR_ACTUAL}
-                      opacity={p.partial ? 0.4 : 1}
-                    />
+                    <g key={p.key}>
+                      <path
+                        d={barPath(xCenter(i) - barGap / 2 - barW, yPlan, barW, baseline - yPlan)}
+                        fill={COLOR_PLAN}
+                      />
+                      <path
+                        d={barPath(xCenter(i) + barGap / 2, yActual, barW, baseline - yActual)}
+                        fill={COLOR_ACTUAL}
+                        opacity={p.partial ? 0.4 : 1}
+                      />
+                    </g>
                   )
                 })}
-
-                {/* Plan step line */}
-                <path d={planPath} fill="none" stroke={COLOR_PLAN} strokeWidth={2} strokeDasharray="4 3" />
 
                 {/* Rolling average */}
                 <path
@@ -349,17 +346,17 @@ export function TrendView() {
               </div>
               <div className="flex justify-between text-slate-600">
                 <span className="flex items-center gap-1.5">
+                  <span className="inline-block h-2 w-2 rounded-sm" style={{ background: COLOR_PLAN }} />
+                  Plan
+                </span>
+                <span className="font-medium tabular-nums text-slate-900">{hovered.plan}</span>
+              </div>
+              <div className="flex justify-between text-slate-600">
+                <span className="flex items-center gap-1.5">
                   <span className="inline-block h-2 w-2 rounded-sm" style={{ background: COLOR_ACTUAL }} />
                   Actual
                 </span>
                 <span className="font-medium tabular-nums text-slate-900">{hovered.actual}</span>
-              </div>
-              <div className="flex justify-between text-slate-600">
-                <span className="flex items-center gap-1.5">
-                  <span className="inline-block h-0.5 w-2" style={{ background: COLOR_PLAN }} />
-                  Plan
-                </span>
-                <span className="font-medium tabular-nums text-slate-900">{hovered.plan}</span>
               </div>
               <div className="flex justify-between text-slate-600">
                 <span className="flex items-center gap-1.5">
