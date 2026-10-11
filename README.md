@@ -17,6 +17,10 @@ device — no account, no backend, no data leaves your machine.
   they arrive.
 - **Weekly summary** — running total vs. your weekly limit, alcohol-free
   days, and how many days you kept within plan.
+- **Trends** — a chart of actual drinks against your plan over time
+  (daily or weekly, 4 weeks to a year), with a rolling average of
+  actual drinks on a second axis (7-day average in the daily view,
+  4-week average in the weekly view).
 - **History** — every past week you've tracked, with plan vs. actual so
   you can see trends over time.
 - **Settings** — customize the unit label (drinks, units, beers, …),
