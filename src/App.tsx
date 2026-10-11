@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { HistoryView } from './components/HistoryView'
 import { SettingsView } from './components/SettingsView'
 import { WeekView } from './components/WeekView'
+import { TrendView } from './components/TrendView'
 import { StoreProvider } from './store'
 
-type Tab = 'plan' | 'history' | 'settings'
+type Tab = 'plan' | 'trends' | 'history' | 'settings'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'plan', label: 'This Week' },
+  { id: 'trends', label: 'Trends' },
   { id: 'history', label: 'History' },
   { id: 'settings', label: 'Settings' },
 ]
@@ -46,6 +48,7 @@ function App() {
 
         <main>
           {tab === 'plan' && <WeekView />}
+          {tab === 'trends' && <TrendView />}
           {tab === 'history' && <HistoryView />}
           {tab === 'settings' && <SettingsView />}
         </main>
